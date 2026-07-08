@@ -17,20 +17,44 @@ file.
 </p>
 
 <p>
-Known game codes: GM8E (NTSC-U/USA), GM8P (PAL/Europe), GM8J (NTSC-J/Japan).
-The save format was only verified against an NTSC-U (GM8E) file; the PAL
-and Japanese versions are expected to share the same layout, but this has
-not been directly confirmed.
+<b>How to use:</b>
+<ol>
+<li>
+  Locate your savefile. If you have Dolphin on Windows, it should be in
+  "C:\Users\yourUsername\AppData\Roaming\Dolphin Emulator\GC\USA\Card A".
+  The folder AppData is likely hidden. Once in your user folder, you can
+  navigate to AppData by typing it in the "url" bar of your file explorer.
+</li>
+<li>
+  Backup your savefile and keep it. This tool has been written in a rush
+  and I don't want to be responsible for corrupting your savefiles :)
+</li>
+<li>
+  Load the savefile below, apply the patch and replace your original savefile
+  where you found it in the Dolphin directory "Card A".
+  Make sure the folder only contains <b>one</b> .gci file for Metroid Prime,
+  otherwise Dolphin will get confused on which one to load and throw a warning.
+</li>
+<li>
+  Start the game, visit the "Metroid Fusion Connection Bonuses" menu and enjoy!
+</li>
+</ol>
 </p>
 
 <p>
 <b>How it works (for reference):</b><br>
-- Offset 0x152D-0x1538 (12 bytes, in the data block): "unlocked extras" flags.
-  Values applied: FE 4F 9F FF FF FF FF FF FF FF FF E0.<br>
-- Offset 0x40-0x43: data block checksum. Algorithm: CRC-32 (poly
+<ul>
+<li>
+  Offset 0x152D-0x1538 (12 bytes, in the data block): "unlocked extras" flags.
+  Values applied: FE 4F 9F FF FF FF FF FF FF FF FF E0.
+</li>
+<li>
+  Offset 0x40-0x43: data block checksum. Algorithm: CRC-32 (poly
   0xEDB88320, init 0xFFFFFFFF, reflected in/out) WITHOUT the final xor
   (a variant known as "JAMCRC"), computed over the bytes from 0x44 to the
   end of the file, written big-endian.
+</li>
+</ul>
 </p>
 
 <hr>
