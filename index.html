@@ -11,9 +11,9 @@ body {
 <p>
 This tool loads a Metroid Prime (GameCube) .gci save file and writes into
 the data block the 12 bytes that unlock the memory-card-level "extras"
-(image galleries, ability to start in Hard Mode, Fusion suit, NES Metroid),
-then recalculates the data block checksum and lets you download the patched
-file.
+(image galleries, ability to start in Hard Mode, <b>Fusion suit</b>, NES Metroid),
+then recalculates the data block checksum and lets you download the patched file.
+It should not mess with your game progress.
 </p>
 
 <p>
@@ -26,8 +26,8 @@ file.
   navigate to AppData by typing it in the "url" bar of your file explorer.
 </li>
 <li>
-  Backup your savefile and keep it. This tool has been written in a rush
-  and I don't want to be responsible for corrupting your savefiles :)
+  Backup your savefile and keep it. I don't want to be responsible for corrupting
+  your data :)
 </li>
 <li>
   Load the savefile below, apply the patch and replace your original savefile
@@ -42,19 +42,8 @@ file.
 </p>
 
 <p>
-<b>How it works (for reference):</b><br>
-<ul>
-<li>
-  Offset 0x152D-0x1538 (12 bytes, in the data block): "unlocked extras" flags.
-  Values applied: FE 4F 9F FF FF FF FF FF FF FF FF E0.
-</li>
-<li>
-  Offset 0x40-0x43: data block checksum. Algorithm: CRC-32 (poly
-  0xEDB88320, init 0xFFFFFFFF, reflected in/out) WITHOUT the final xor
-  (a variant known as "JAMCRC"), computed over the bytes from 0x44 to the
-  end of the file, written big-endian.
-</li>
-</ul>
+See <a href="https://github.com/robzan8/prime-unlock">https://github.com/robzan8/prime-unlock</a>
+for details on how the patch works.
 </p>
 
 <hr>
