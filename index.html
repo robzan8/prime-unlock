@@ -1,171 +1,18 @@
-<title>Fusion Suit Unlocker for Metroid Prime</title>
-
-<style>
-body {
-    padding: 15px 10%;
-}
-</style>
-
-<h1>Fusion Suit Unlocker for Metroid Prime</h1>
-
-<p>
-This tool loads a Metroid Prime (GameCube) .gci save file and writes into
-the data block the 12 bytes that unlock the memory-card-level "extras"
-(Fusion suit, NES Metroid, image galleries, ability to start in Hard Mode),
-then recalculates the data block checksum and lets you download the patched file.
-<br>
-It should not mess with your game progress.
-</p>
-
-<p>
-<b>How to use:</b>
-<ol>
-<li>
-  Locate your savefile. If you have Dolphin on Windows, it should be in
-  "C:\Users\yourUsername\AppData\Roaming\Dolphin Emulator\GC\USA\Card A".
-  The folder AppData is likely hidden. Once in your user folder, you can
-  navigate to AppData by typing it in the "url" bar of your file explorer.
-</li>
-<li>
-  Backup your savefile and keep it. I don't want to be responsible for corrupting
-  your data :)
-</li>
-<li>
-  Load the savefile below, apply the patch and replace your original savefile
-  where you found it in the Dolphin directory "Card A".
-  Make sure the folder only contains <b>one</b> .gci file for Metroid Prime,
-  otherwise Dolphin will get confused on which one to load and throw a warning.
-</li>
-<li>
-  Start the game, visit the "Metroid Fusion Connection Bonuses" menu and enjoy!
-</li>
-</ol>
-</p>
-
-<p>
-See <a href="https://github.com/robzan8/prime-unlock">https://github.com/robzan8/prime-unlock</a>
-for details on how the patch works.
-</p>
-
-<hr>
-
-<p>
-<label>Select .gci file: <input type="file" id="fileInput" accept=".gci"></label>
-</p>
-
-<div id="info"></div>
-
-<p>
-<button id="patchBtn" disabled>Apply unlocks and recalculate checksum</button>
-<button id="downloadBtn" disabled>Download patched file</button>
-</p>
-
-<pre id="log"></pre>
-
-<script>
-var UNLOCK_OFFSET = 0x152D;
-var UNLOCK_BYTES = [0xFE, 0x4F, 0x9F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xE0];
-var CHECKSUM_OFFSET = 0x40;
-var CHECKSUM_DATA_START = 0x44;
-
-var currentBytes = null;
-var currentFilename = null;
-
-function toHex(bytes, start, len) {
-    var parts = [];
-    for (var i = 0; i < len; i++) {
-        parts.push(bytes[start + i].toString(16).toUpperCase().padStart(2, "0"));
-    }
-    return parts.join(" ");
-}
-
-function crc32_jamcrc(bytes, start, end) {
-    var crc = 0xFFFFFFFF;
-    for (var i = start; i < end; i++) {
-        crc ^= bytes[i];
-        for (var j = 0; j < 8; j++) {
-            var mask = -(crc & 1);
-            crc = (crc >>> 1) ^ (0xEDB88320 & mask);
-        }
-    }
-    return crc >>> 0;
-}
-
-function log(msg) {
-    document.getElementById("log").textContent += msg + "\n";
-}
-
-function showInfo() {
-    var info = document.getElementById("info");
-    var gameCode = String.fromCharCode(currentBytes[0], currentBytes[1], currentBytes[2], currentBytes[3]);
-    var checksum = (currentBytes[CHECKSUM_OFFSET] << 24 | currentBytes[CHECKSUM_OFFSET+1] << 16 |
-                     currentBytes[CHECKSUM_OFFSET+2] << 8 | currentBytes[CHECKSUM_OFFSET+3]) >>> 0;
-    var lines = [];
-    lines.push("File: " + currentFilename + " (" + currentBytes.length + " bytes)");
-    lines.push("Game code: " + gameCode);
-    lines.push("Current checksum (0x40-0x43): " + checksum.toString(16).toUpperCase());
-    lines.push("Current bytes at 0x" + UNLOCK_OFFSET.toString(16).toUpperCase() +
-                " (12 bytes): " + toHex(currentBytes, UNLOCK_OFFSET, 12));
-    info.innerHTML = "<pre>" + lines.join("\n") + "</pre>";
-
-    var VALID_GAME_CODES = ["GM8E", "GM8P", "GM8J"]; // USA, PAL/Europe, Japan
-    if (VALID_GAME_CODES.indexOf(gameCode) === -1) {
-        log("WARNING: the game code is not a known Metroid Prime code (GM8E/GM8P/GM8J). This file might not be compatible with this patcher.");
-    }
-    if (currentBytes.length < UNLOCK_OFFSET + 12) {
-        log("ERROR: the file is too short to contain the unlock bytes at the expected offset.");
-        document.getElementById("patchBtn").disabled = true;
-    } else {
-        document.getElementById("patchBtn").disabled = false;
-    }
-}
-
-document.getElementById("fileInput").addEventListener("change", function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    currentFilename = file.name;
-    document.getElementById("log").textContent = "";
-    document.getElementById("downloadBtn").disabled = true;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-        currentBytes = new Uint8Array(ev.target.result);
-        showInfo();
-    };
-    reader.readAsArrayBuffer(file);
-});
-
-document.getElementById("patchBtn").addEventListener("click", function() {
-    if (!currentBytes) return;
-
-    for (var i = 0; i < UNLOCK_BYTES.length; i++) {
-        currentBytes[UNLOCK_OFFSET + i] = UNLOCK_BYTES[i];
-    }
-    log("Wrote the 12 unlock bytes at 0x" + UNLOCK_OFFSET.toString(16).toUpperCase() + ".");
-
-    var newChecksum = crc32_jamcrc(currentBytes, CHECKSUM_DATA_START, currentBytes.length);
-    currentBytes[CHECKSUM_OFFSET]   = (newChecksum >>> 24) & 0xFF;
-    currentBytes[CHECKSUM_OFFSET+1] = (newChecksum >>> 16) & 0xFF;
-    currentBytes[CHECKSUM_OFFSET+2] = (newChecksum >>> 8) & 0xFF;
-    currentBytes[CHECKSUM_OFFSET+3] = newChecksum & 0xFF;
-    log("New checksum calculated and written at 0x40-0x43: " + newChecksum.toString(16).toUpperCase());
-
-    showInfo();
-    document.getElementById("downloadBtn").disabled = false;
-});
-
-document.getElementById("downloadBtn").addEventListener("click", function() {
-    if (!currentBytes) return;
-    var blob = new Blob([currentBytes], {type: "application/octet-stream"});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    var name = currentFilename || "save.gci";
-    var patchedName = name.replace(/\.gci$/i, "") + "-unlocked.gci";
-    a.download = patchedName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    log("File downloaded as " + patchedName);
-});
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Page moved</title>
+  <meta http-equiv="refresh" content="0; url=https://robzan8.github.io/fusion-suit-unlocker/">
+  <link rel="canonical" href="https://robzan8.github.io/fusion-suit-unlocker/">
+  <script>
+    window.location.replace("https://robzan8.github.io/fusion-suit-unlocker/");
+  </script>
+</head>
+<body>
+  <p>
+    This page has been moved:
+    <a href="https://robzan8.github.io/fusion-suit-unlocker/">https://robzan8.github.io/fusion-suit-unlocker/</a>.
+  </p>
+</body>
+</html>
