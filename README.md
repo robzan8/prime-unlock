@@ -1,9 +1,9 @@
-# prime-unlock
+# Fusion Suit Unlocker for Metroid Prime
 
-A browser-based patcher for Metroid Prime (GameCube) `.gci` save files. It
-unlocks the memory-card-level "extras" (image galleries, ability to start in
-Hard Mode, **Fusion suit**, NES Metroid) on an existing save file, without
-requiring GBA link cables or beating the game.
+A browser-based patcher for Metroid Prime (GameCube) `.gci` save files.
+It unlocks the memory-card-level "extras" (Fusion suit, NES Metroid, image
+galleries, ability to start in Hard Mode) on an existing save file, without
+requiring GBA link cables or beating the game.<br>
 It should not mess with your game progress.
 
 Live tool: https://robzan8.github.io/prime-unlock/
